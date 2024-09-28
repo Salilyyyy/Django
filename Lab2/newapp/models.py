@@ -1,6 +1,6 @@
 from django.db import models
+from datetime import date
 
-# Lớp cơ sở trừu tượng cho thông tin chung
 class CommonInfo(models.Model):
     name = models.CharField("Tên", max_length=100)
 
@@ -8,7 +8,6 @@ class CommonInfo(models.Model):
         abstract = True
         ordering = ["name"]
 
-# Lớp Place với thông tin cơ bản
 class Place(models.Model):
     name = models.CharField(max_length=50, help_text="Nhập tên địa điểm")
     address = models.CharField(max_length=80, help_text="Nhập địa chỉ")
@@ -16,7 +15,6 @@ class Place(models.Model):
     def __str__(self):
         return self.name
 
-# Lớp Restaurant kế thừa từ Place
 class Restaurant(Place):
     serves_hot_dogs = models.BooleanField(default=False, help_text="Có phục vụ hot dog không?")
     serves_pizza = models.BooleanField(default=False, help_text="Có phục vụ pizza không?")
@@ -31,14 +29,12 @@ class Restaurant(Place):
     def __str__(self):
         return f"{self.name} (Restaurant)"
 
-# Lớp Supplier kế thừa từ Place
 class Supplier(Place):
     customers = models.ManyToManyField(Place, related_name='providers', help_text="Chọn các khách hàng của nhà cung cấp")
 
     def __str__(self):
         return f"{self.name} (Supplier)"
 
-# Lớp Person
 class Person(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
@@ -46,34 +42,28 @@ class Person(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-# Lớp MyPerson (Mô hình proxy)
 class MyPerson(Person):
     class Meta:
         proxy = True
 
     def do_something(self):
-        # Thực hiện một hành động nào đó
         pass
 
-# Lớp OrderedPerson (Mô hình proxy)
 class OrderedPerson(Person):
     class Meta:
         ordering = ["last_name"]
         proxy = True
 
-# Trình quản lý tùy chỉnh
 class NewManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(active=True)  # Ví dụ, lọc theo trường active
+        return super().get_queryset().filter(active=True)
 
-# Lớp MyPerson với trình quản lý tùy chỉnh
 class MyPersonWithManager(Person):
     objects = NewManager()
 
     class Meta:
         proxy = True
 
-# Lớp Album
 class Album(models.Model):
     artist = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='albums', verbose_name="Nhạc sĩ")
     name = models.CharField("Tên album", max_length=100, help_text="Nhập tên album")
@@ -84,10 +74,8 @@ class Album(models.Model):
         return self.name
 
     def save(self, **kwargs):
-        print(f"Saving album: {self.name}")
         super().save(**kwargs)
 
-# Lớp Musician kế thừa từ CommonInfo
 class Musician(CommonInfo):
     first_name = models.CharField("Tên đầu tiên của nhạc sĩ", max_length=50, help_text="Nhập tên đầu tiên của nhạc sĩ")
     last_name = models.CharField("Họ của nhạc sĩ", max_length=50, help_text="Nhập họ của nhạc sĩ")
@@ -97,21 +85,17 @@ class Musician(CommonInfo):
         return f"{self.first_name} {self.last_name}"
 
     def save(self, **kwargs):
-        print(f"Saving musician: {self.first_name} {self.last_name}")
         super().save(**kwargs)
 
-# Lớp Fruit kế thừa từ CommonInfo
 class Fruit(CommonInfo):
     name = models.CharField("Tên loại trái cây", max_length=100, help_text="Nhập tên của loại trái cây", unique=True)
 
     def __str__(self):
         return self.name
 
-# Lớp Manufacturer kế thừa từ CommonInfo
 class Manufacturer(CommonInfo):
     pass
 
-# Lớp Car
 class Car(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE, verbose_name="Nhà sản xuất")
     model = models.CharField("Mô hình xe", max_length=100)
@@ -119,7 +103,6 @@ class Car(models.Model):
     def __str__(self):
         return self.model
 
-# Lớp Group
 class Group(models.Model):
     name = models.CharField("Tên nhóm", max_length=128)
     members = models.ManyToManyField(Person, through="Membership", related_name="%(app_label)s_%(class)s_members", verbose_name="Danh sách thành viên")
@@ -127,7 +110,6 @@ class Group(models.Model):
     def __str__(self):
         return self.name
 
-# Lớp Membership
 class Membership(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE, verbose_name="Người tham gia", related_name="%(app_label)s_%(class)s_memberships")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name="Nhóm", related_name="%(app_label)s_%(class)s_memberships")
@@ -135,9 +117,8 @@ class Membership(models.Model):
     invite_reason = models.CharField("Lý do mời", max_length=64)
 
     def __str__(self):
-        return f"{self.person.name} - {self.group.name}"
+        return f"{self.person.first_name} - {self.group.name}"
 
-# Lớp Ox
 class Ox(models.Model):
     horn_length = models.IntegerField()
 
@@ -148,16 +129,13 @@ class Ox(models.Model):
     def __str__(self):
         return f"Ox with horn length {self.horn_length}"
 
-# Lớp PersonWithStatus
 class PersonWithStatus(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     birth_date = models.DateField()
 
     def baby_boomer_status(self):
-        "Returns the person's baby-boomer status."
         import datetime
-
         if self.birth_date < datetime.date(1945, 8, 1):
             return "Pre-boomer"
         elif self.birth_date < datetime.date(1965, 1, 1):
@@ -167,5 +145,80 @@ class PersonWithStatus(models.Model):
 
     @property
     def full_name(self):
-        "Returns the person's full name."
         return f"{self.first_name} {self.last_name}"
+
+class Blog(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+class Author(models.Model):
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+
+    def __str__(self):
+        return self.name
+
+class EntryManager(models.Manager):
+    pass
+
+class Entry(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    headline = models.CharField(max_length=255)
+    body_text = models.TextField()
+    pub_date = models.DateField()
+    mod_date = models.DateField(default=date.today)
+    authors = models.ManyToManyField(Author)
+    number_of_comments = models.IntegerField(default=0)
+    number_of_pingbacks = models.IntegerField(default=0)
+    rating = models.IntegerField(default=5)
+    objects = models.Manager()
+    entries = EntryManager()
+
+    def __str__(self):
+        return self.headline
+
+class Dog(models.Model):
+    name = models.CharField(max_length=200)
+    data = models.JSONField(null=True)
+
+    def __str__(self):
+        return self.name
+
+class EntryDetail(models.Model):
+    entry = models.OneToOneField(Entry, on_delete=models.CASCADE)
+    details = models.TextField()
+
+class Event(models.Model):
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        related_name="children",
+    )
+    date = models.DateField()
+
+class City(models.Model):
+    pass
+
+class Person(models.Model):
+    hometown = models.ForeignKey(
+        City,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
+class Book(models.Model):
+    author = models.ForeignKey(Person, on_delete=models.CASCADE)
+
+class Topping(models.Model):
+    name = models.CharField(max_length=30)
+
+class Pizza(models.Model):
+    name = models.CharField(max_length=50)
+    toppings = models.ManyToManyField(Topping)
+
+    def __str__(self):
+        return f"{self.name} ({', '.join(topping.name for topping in self.toppings.all())})"
