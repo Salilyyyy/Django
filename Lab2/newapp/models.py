@@ -163,7 +163,7 @@ class Author(models.Model):
 
 class EntryManager(models.Manager):
     pass
-
+#queryset
 class Entry(models.Model):
     blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
     headline = models.CharField(max_length=255)
