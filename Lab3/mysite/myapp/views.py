@@ -11,7 +11,14 @@ from django.views.decorators.cache import (
 )
 from asgiref.sync import sync_to_async
 import asyncio
-
+from django.shortcuts import render
+from .models import Section, Story
+def story_list_view(request):
+    section = Section.objects.first()
+    story_list = Story.objects.all()
+    return render(request, 'story_list.html', {'section': section, 'story_list': story_list})
+def index(request):
+    return render(request, 'index.html')
 # Hàm trả về thời gian hiện tại
 def current_datetime(request):
     now = datetime.datetime.now()
